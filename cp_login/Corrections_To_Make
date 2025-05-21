@@ -1,0 +1,29 @@
+Make User Primary key as id for GDPR Compliance.
+Google account login/signup. Google Callback To Home Page
+Need to Make Logout option
+Check 3 week Availability list working or not
+Tutor Certifications file path during signup..not being stored
+Allow Update of Tutor Live class Profile and delete 
+Add RATE LIMITING to all necessary endpoints
+
+Cross-Browser Issues
+Safari has strict WebRTC policies
+Fix: Use Agora's browser adapter
+
+Payment Disputes
+Chargebacks for no-shows
+Fix: Implement session validation webhooks
+
+
+
+SCHEDULING STRIPE:
+*Fix Badge progress..showing details for only one liveclassprofile
+*Fix Validate Catch Up Video Duration Code in Serializer
+
+
+
+TUTOR COURSES :
+*Pass Timezone From Frontend
+*Add Cart Creation Middleware for learner
+*Fix Validate Video Duration Code in Serializer
+*Validate Video Hash Existence during course creation as well

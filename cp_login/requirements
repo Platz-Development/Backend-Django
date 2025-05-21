@@ -1,0 +1,12 @@
+django
+rest_framework
+pytz
+pillow
+rest_framework_simplejwt
+social_django
+stripe
+stripe celery
+redis
+django_celery_results
+django-encrypted-model-fields 
+cryptography
