@@ -1,5 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
-
+import re , uuid
 
 def calculate_cp_profit_from_learner(amount_received_at_stripe: float, base_price: float) -> float:
     

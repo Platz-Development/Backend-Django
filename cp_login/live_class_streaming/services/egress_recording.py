@@ -9,7 +9,7 @@ LIVEKIT_API_KEY = "APIgaGhNfsBshoX"
 LIVEKIT_API_SECRET = "AHDvf9YF8rDob8v6fJ23D5UAefZT62xR5phWSFPZKgyC" 
 LIVEKIT_URL = "https://campusplatz-ckqf7pkr.livekit.cloud"
 
-def start_composite_egress(room_name, video_track_id, audio_track_ids):
+def start_composite_egress(room_name, video_track_id, audio_track_ids,safe_title):
     """
     Start recording with learner's video and both tutor + learner audio tracks.
     """
@@ -30,7 +30,7 @@ def start_composite_egress(room_name, video_track_id, audio_track_ids):
 
                 file_outputs=egress.EncodedFileOutput(
                     file_type=egress.EncodedFileType.MP4,
-                    filepath=f"recordings/{room_name}.mp4",
+                    filepath=f"{safe_title}.mp4",
                     s3=egress.S3Upload(
                         access_key="c5b0c094a3ad8581e00746d8d7f36873",
                         secret="03f7a1c3c586775385f82b966f785b0e87c2d024110bee4320b19f251ca68710",

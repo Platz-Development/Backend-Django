@@ -33,7 +33,8 @@ from .services.live_kit import create_livekit_room_sync
 from users.models import User
 from django.utils.decorators import method_decorator
 import jwt
-
+from .utils import safe_title_for_recording
+from .services.cloudflare_r2 import generate_r2_signed_url
 
 GERMANY_TZ = pytz.timezone('Europe/Berlin')
 BUFFER_MINUTES = 10  
@@ -512,40 +513,6 @@ class LiveKitWebhookView(APIView):
 
 
 
-class LivekitTokenRefreshAPIView(APIView):
-    
-    #permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        
-        session_id = request.data.get('session_id')
-        if not session_id:
-            return Response({"error": "session_id required"},status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            session = LiveClassSession.objects.get(id=session_id,status__in=["ONGOING", "SCHEDULED"])
-
-        except LiveClassSession.DoesNotExist:
-            return Response({"error": "Invalid or inactive session"},status=status.HTTP_404_NOT_FOUND)
-
-        user = request.user
-        is_tutor = (user == session.tutor.user)
-        is_learner = (user == session.learner)
-        
-        if not (is_tutor or is_learner):
-            return Response({"error": "You are Not an Authorized participant"},status=status.HTTP_403_FORBIDDEN)
-        
-        if user ==session.tutor.user:
-          generate_livekit_session_tokens(session_id=session_id,user=session.tutor.user)
-          urls=generate_livekit_join_urls(session_id=session_id,user=session.tutor.user)
-          return Response({"encoded_tutor_url": urls['encoded_tutor_url']},status=status.HTTP_200_OK)
-        
-        elif user ==session.learner:
-          generate_livekit_session_tokens(session_id=session_id,user=session.learner)
-          urls=generate_livekit_join_urls(session_id=session_id,user=session.learner)
-          return Response({"encoded_learner_url": urls['encoded_learner_url']},status=status.HTTP_200_OK)
-           
-
 class StartLivekitRecordingAPIView(APIView):
     
     #permission_classes = [IsAuthenticated]
@@ -566,11 +533,15 @@ class StartLivekitRecordingAPIView(APIView):
         except LiveClassSession.DoesNotExist:
             return Response({f"Session With {session_id} Not Found "},status=status.HTTP_404_NOT_FOUND)
         
+        
+        safe_title = safe_title_for_recording(title=title,session_id=session_id)
+        
         try:
             result = start_composite_egress(
             room_name=room_name,
             video_track_id=video_track_id,
-            audio_track_ids=audio_track_ids)
+            audio_track_ids=audio_track_ids,
+            safe_title=safe_title)
 
             SessionRecording.objects.create(
                 session=session,
@@ -613,7 +584,7 @@ class StopLivekitRecordingAPIView(APIView):
             
             session_recording.egress_id = egress_id
             session_recording.save()
-
+            
             return Response({
                 "message": "Recording Stopped Successfully.",
                 "egress_id": egress_id,
@@ -623,6 +594,82 @@ class StopLivekitRecordingAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class RetrieveRecordingsAPIView(APIView):
+    
+    #permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            #user = request.user
+            learner_email = "deemz@iu.edu.in"
+            user = User.objects.get(email=learner_email)
+        except User.DoesNotExist:
+            return Response({"error": "Learner Does Not Exist."},status=status.HTTP_404_NOT_FOUND)
+
+        if not hasattr(user, 'learner'):
+            return Response({"error": "Access Denied. This endpoint is for learners only."},status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            recordings = SessionRecording.objects.filter(session__learner=user).order_by('-created_at')
+            
+            if not recordings.exists():
+                return Response({"message": "You have no Recordings yet."},status=status.HTTP_200_OK)
+            
+            data = []
+            for r in recordings:
+                key = r.livekit_mp4_url
+                signed_url = generate_r2_signed_url(key)
+                data.append({
+                    "id": r.id,
+                    "title": r.title,
+                    "recording_url": signed_url,
+                    "recording_duration": r.duration_seconds,
+                    "recording_file_size": r.file_size_mb,
+                    "created_at": r.created_at.isoformat(),
+                    "session_uid": r.session.uid,
+                    "session_date": r.session.scheduled_start_time.isoformat()
+                })
+
+            return Response({"My Recordings": data}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": "Something Went wrong while retrieving recordings.", "details": str(e)},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class LivekitTokenRefreshAPIView(APIView):
+    
+    #permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        
+        session_id = request.data.get('session_id')
+        if not session_id:
+            return Response({"error": "session_id required"},status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            session = LiveClassSession.objects.get(id=session_id,status__in=["ONGOING", "SCHEDULED"])
+
+        except LiveClassSession.DoesNotExist:
+            return Response({"error": "Invalid or inactive session"},status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+        is_tutor = (user == session.tutor.user)
+        is_learner = (user == session.learner)
+        
+        if not (is_tutor or is_learner):
+            return Response({"error": "You are Not an Authorized participant"},status=status.HTTP_403_FORBIDDEN)
+        
+        if user ==session.tutor.user:
+          generate_livekit_session_tokens(session_id=session_id,user=session.tutor.user)
+          urls=generate_livekit_join_urls(session_id=session_id,user=session.tutor.user)
+          return Response({"encoded_tutor_url": urls['encoded_tutor_url']},status=status.HTTP_200_OK)
+        
+        elif user ==session.learner:
+          generate_livekit_session_tokens(session_id=session_id,user=session.learner)
+          urls=generate_livekit_join_urls(session_id=session_id,user=session.learner)
+          return Response({"encoded_learner_url": urls['encoded_learner_url']},status=status.HTTP_200_OK)
+           
 
 class StartRecordingAPIView(APIView):
     permission_classes = [IsAuthenticated]

@@ -186,7 +186,8 @@ class SessionTelemetry(models.Model):
 
 class SessionRecording(models.Model):
     session = models.ForeignKey( LiveClassSession, on_delete=models.CASCADE, related_name='recording')
-
+    title = models.CharField(max_length=64, blank=True)
+    
     storage_id = models.CharField( max_length=256, unique=True, help_text="Opaque storage identifier (GDPR pseudonymization)")
     storage_region = models.CharField( max_length=20,default='eu-west-1', help_text="AWS/GCP region for data residency compliance")
     encryption_key_id = models.CharField( max_length=64,help_text="KMS key identifier for encrypted storage")
@@ -196,7 +197,7 @@ class SessionRecording(models.Model):
     file_size_mb = models.DecimalField(max_digits=6,decimal_places=2,validators=[MinValueValidator(0.01)])
     
     retention_days = models.PositiveSmallIntegerField(default=30,validators=[MaxValueValidator(365)],help_text="Days before automatic deletion (GDPR Right to Erasure)")
-
+    
     # LiveKit References
     egress_id = models.CharField(max_length=64,blank=True,help_text="LiveKit's egress job ID")
     livekit_mp4_url = models.URLField( blank=True, help_text="Temporary LiveKit MP4 URL (expires in 24h)" )

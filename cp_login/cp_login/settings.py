@@ -208,6 +208,12 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Berlin'
 
 
+R2_ACCESS_KEY = "c5b0c094a3ad8581e00746d8d7f36873"
+R2_SECRET_KEY = "03f7a1c3c586775385f82b966f785b0e87c2d024110bee4320b19f251ca68710"
+R2_BUCKET_NAME = "livekit-recordings"
+R2_ENDPOINT_URL = "https://25f23cf5d85b78cabf8706e7fa7e6c55.r2.cloudflarestorage.com" 
+R2_SIGNED_URL_EXPIRATION = 12000
+
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
