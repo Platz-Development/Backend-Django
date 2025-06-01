@@ -1,0 +1,69 @@
+# ---- Core Django ----
+Django
+djangorestframework
+django-cors-headers
+django-environ
+
+# ---- Auth & Accounts ----
+dj-rest-auth
+django-allauth
+djangorestframework-simplejwt
+social-auth-app-django
+
+#---- Google Signup/Login ----
+
+google-auth
+google-auth-oauthlib 
+google-auth-httplib2
+
+# ---- Django Admin Enhancements ----
+django-jazzmin
+django-import-export
+django-simple-history
+
+# ---- Payments ----
+stripe
+
+# ---- LiveKit Integration ----
+livekit
+livekit-api
+livekit-protocol
+
+# ---- Celery & Redis ----
+celery
+redis
+django-celery-results
+flower
+
+# ---- Security & Validation ----
+cryptography
+django-recaptcha
+python-dotenv
+bcrypt
+
+# ---- Utility ----
+requests
+aiohttp
+aiofiles
+Pillow
+humanize
+
+# ---- Optional (Admin / Parsing Helpers) ----
+beautifulsoup4
+lxml
+python-magic
+django-ratelimit
+
+# ---- Required for typing / data models ----
+pydantic
+pydantic-settings
+annotated-types
+
+# ---- Task retry helpers / scheduling ----
+backoff
+schedule
+
+# ---- File type identification ----
+filetype
+moviepy
+ffmpeg

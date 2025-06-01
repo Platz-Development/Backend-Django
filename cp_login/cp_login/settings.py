@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-8pn!0qthqdvn9syj382&wlk#thve#*%8qf&&f8p@x5_qahc5za
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['081e-106-51-161-101.ngrok-free.app','127.0.0.1']
+ALLOWED_HOSTS = ['081e-106-51-161-101.ngrok-free.app','127.0.0.1','localhost' ]
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'users',
     'scheduling_stripe',
     'rest_framework',
@@ -52,7 +53,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'social_django',  # Add social auth app  
-    'corsheaders',
     'tutor_courses',
     'payments',
     'django_celery_results',
@@ -68,12 +68,12 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
@@ -174,7 +174,9 @@ AUTHENTICATION_BACKENDS = [
 # CORS settings 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000", 
-    "http://localhost:3000" 
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+
    
 ]
 

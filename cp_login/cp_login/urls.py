@@ -9,7 +9,8 @@ urlpatterns = [
     path('', include('payments.urls')), 
     path('', include('scheduling_stripe.urls')), 
     path('', include('live_class_streaming.urls')),
-     path('', include('tutor_courses.urls')),
+    path('', include('tutor_courses.urls')),
+
 ]
 
 if settings.DEBUG:

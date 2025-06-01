@@ -40,6 +40,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser):
     email = models.EmailField(unique=True,primary_key=True)
+    password = models.CharField(max_length=128, null=True, blank=True)
     f_name= models.CharField(max_length=30,null=True, blank=True)
     l_name = models.CharField(max_length=30,null=True, blank=True)
     country = models.CharField(max_length=50,null=True, blank=True)

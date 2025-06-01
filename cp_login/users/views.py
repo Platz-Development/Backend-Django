@@ -33,6 +33,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from django.http import HttpResponse
 from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+
+
+
+
 
 class LearnerSignUpView(APIView):
     permission_classes = [AllowAny]
@@ -294,6 +299,7 @@ class EmailVerificationView(APIView):
 
 
 class GoogleSignupView(APIView):
+    
     def post(self, request):
         token = request.data.get('token')
         if not token:
@@ -302,7 +308,7 @@ class GoogleSignupView(APIView):
 
         try:
             # Verify the token
-            idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_CLIENT_ID)
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), settings.GOOGLE_CLIENT_ID, clock_skew_in_seconds=10 )
 
             # Validate issuer and email
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
@@ -360,6 +366,9 @@ class GoogleSignupView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 
+from django.utils.decorators import method_decorator
+
+@method_decorator(csrf_exempt, name='dispatch')
 class GoogleLoginView(APIView):
     def post(self, request):
         token = request.data.get('token')
@@ -368,8 +377,8 @@ class GoogleLoginView(APIView):
             return Response({'error': 'Missing ID token.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Verify the token
-            idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_CLIENT_ID)
+
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), settings.GOOGLE_CLIENT_ID, clock_skew_in_seconds=10 )
 
             # Validate issuer and email
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
