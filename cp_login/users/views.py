@@ -29,8 +29,10 @@ from rest_framework.parsers import MultiPartParser,FormParser
 from .decorators import require_api_key
 from django.views.decorators.csrf import csrf_exempt
 import requests
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from django.http import HttpResponse
+from google.oauth2 import id_token
 
 class LearnerSignUpView(APIView):
     permission_classes = [AllowAny]
@@ -290,53 +292,124 @@ class EmailVerificationView(APIView):
 
 #=========================================== Google Signup/Login ======================================================
 
-class GoogleSignupView(APIView):
-    @psa('social:complete')
-    def post(self, request):
-        # Extract data from Google OAuth2 response
-        backend = GoogleOAuth2(request)
-        user_data = backend.user_data(request.GET.get('code'))
 
-        # Validate and create user using the serializer
-        serializer = GoogleAuthSerializer(data=user_data)
-        if serializer.is_valid():
-            user=serializer.save()
+class GoogleSignupView(APIView):
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            logger.warning("Google ID Token Not Provided In Request.")
+            return Response({'error': 'Missing ID token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Verify the token
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_CLIENT_ID)
+
+            # Validate issuer and email
+            if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+                logger.error("Invalid Token Issuer.")
+                return Response({'error': 'Invalid token issuer.'}, status=status.HTTP_403_FORBIDDEN)
+
+            if not idinfo.get('email_verified'):
+                logger.warning(f"Email Not Verified For Token: {idinfo.get('email')}")
+                return Response({'error': 'Email Not Verified By Google.'}, status=status.HTTP_403_FORBIDDEN)
+
+            # Prepare data
+            email = idinfo.get('email')
+            user_data = {
+                'email': email,
+                'first_name': idinfo.get('given_name', ''),
+                'last_name': idinfo.get('family_name', ''),
+            }
+
+            # Check if user already exists
+            user_exists = User.objects.filter(email=email).exists()
+
+            if not user_exists:
+                # Create new user
+                serializer = GoogleAuthSerializer(data=user_data)
+
+                if serializer.is_valid():
+                    user = serializer.save()
+                    logger.info(f"Created New Google User: {email}")
+                    created = True
+                else:
+                    logger.error(f"Google Signup Validation Error For {email}: {serializer.errors}")
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                # Fetch existing user
+                user = User.objects.get(email=email)
+                logger.info(f"Google User Logged In: {email}")
+                created = False
+
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+
             return Response({
-                'message': 'User created successfully',
+                'message': 'Account Created Successfully' if created else 'Logged In Successfully',
                 'email': user.email,
-            }, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+        except ValueError as e:
+            logger.exception("Google Token Verification Failed.")
+            return Response({'error': 'Invalid ID Token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            logger.exception("Unexpected Error During Google Signup.")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 class GoogleLoginView(APIView):
-    @psa('social:complete')
     def post(self, request):
-        # Extract data from Google OAuth2 response
-        backend = GoogleOAuth2(request)
-        user_data = backend.user_data(request.GET.get('code'))
+        token = request.data.get('token')
+        if not token:
+            logger.warning("Google ID Token Not Provided In Request.")
+            return Response({'error': 'Missing ID token.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if the user exists
-        email = user_data.get('email')
         try:
-            user = User.objects.get(email=email)
-            if not user.is_google_user:
-               return Response({
-                    'message': ''
-                }, status=status.HTTP_401_UNAUTHORIZED) 
-            if not user.is_learner:
-                return Response({
-                    'message': ''
-                }, status=status.HTTP_401_UNAUTHORIZED)
+            # Verify the token
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_CLIENT_ID)
+
+            # Validate issuer and email
+            if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+                logger.error("Invalid Token Issuer.")
+                return Response({'error': 'Invalid token issuer.'}, status=status.HTTP_403_FORBIDDEN)
+
+            if not idinfo.get('email_verified'):
+                logger.warning(f"Email Not Verified For Token: {idinfo.get('email')}")
+                return Response({'error': 'Email Not Verified By Google.'}, status=status.HTTP_403_FORBIDDEN)
+
+            email = idinfo.get('email')
+
+            try:
+                user = User.objects.get(email=email)
+                if not user.is_google_user:
+                    logger.warning(f"Non-Google User Account Tried To Log In : {email}")
+                    return Response({'error': 'You Have Not Signed Up Via Google. Please Enter Your Email And Password To Log In.'},status=status.HTTP_403_FORBIDDEN)
+                
+            except User.DoesNotExist:
+                logger.info(f"Google Login Attempt For Unregistered Email: {email}")
+                return Response({'error': 'You Have Not Yet Signed Up Via Google. Please Sign Up First.'},status=status.HTTP_404_NOT_FOUND)
+            
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+
             return Response({
-                'message': 'Login successful',
+                'message': 'Logged In Successfully',
                 'email': user.email,
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
             }, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response({
-                'message': 'No account found with this email.'
-            }, status=status.HTTP_404_NOT_FOUND)    
 
+        except ValueError as e:
+            logger.exception("Google Token Verification Failed.")
+            return Response({'error': 'Invalid ID Token.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        except Exception as e:
+            logger.exception("Unexpected Error During Google Signup.")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 #====================================== Forgot Password ===============================================================
 

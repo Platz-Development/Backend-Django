@@ -59,8 +59,7 @@ INSTALLED_APPS = [
     'live_class_streaming',
     'simple_history',
     'import_export',
-    
-    
+        
 ]
 
 SITE_ID = 1
@@ -160,11 +159,11 @@ JAZZMIN_SETTINGS = {
 JAZZMIN_UI_TWEAKS = {
     "theme": "cyborg", } # Choose from: darkly, cyborg, superhero, slate
 
-# Google OAuth2 settings
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'google-client-id'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'google-client-secret'
-SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/auth/google/callback/'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
+#Google OAuth2
+GOOGLE_CLIENT_ID='84178167567-gk26or49o3vfaaui19bb4ca5l1181734.apps.googleusercontent.com'
+GOOGLE_OAUTH2_SECRET='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'
+GOOGLE_OAUTH2_REDIRECT_URI='http://localhost:8000/auth/google/callback/'
+GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -196,7 +195,6 @@ SIMPLE_JWT = {
 STRIPE_SECRET_KEY = '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'
 STRIPE_PUBLIC_KEY = 'pk_live_51R5TuGEb88xTWu1L8jgVgnRgxFhOkVsWJIFclAitRbj8S1jkkwA4IX7sdvJYwu2sJTzhSmt2AR42bbIApWZk8KmT00RtmQK1ss'
 STRIPE_WEBHOOK_SECRET = 'whsec_jtv3Re5tevVlpjhaPszDj8Y0bWVodfoY'
-
 
 
 
@@ -263,9 +261,3 @@ USE_DAILY_CO_FALLBACK = True # set True in production
 
 FIELD_ENCRYPTION_KEY = '4Uhvh-Y4-y1CuRjERkOYRuqL9F94WPQBt2qvv5Glv_4='
 
-
-# (Future S3 config)
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_ACCESS_KEY_ID = 'YOUR_KEY'
-AWS_SECRET_ACCESS_KEY = 'YOUR_SECRET'
-AWS_STORAGE_BUCKET_NAME = 'your-bucket'

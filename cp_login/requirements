@@ -10,3 +10,6 @@ redis
 django_celery_results
 django-encrypted-model-fields 
 cryptography
+boto3
+botocore
+flower

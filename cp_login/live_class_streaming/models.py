@@ -76,8 +76,7 @@ class LiveClassSession(models.Model):
     class Provider(models.TextChoices):
         LIVEKIT = 'LIVEKIT', 'LiveKit'
         DAILY_CO = 'DAILY_CO', 'Daily.co'
-        FALLBACK = 'FALLBACK', 'Browser WebRTC'
-
+        
     # Core Identifiers
     uid = models.CharField(max_length=16,default=generate_uid_for_live_class,editable=False,unique=True,help_text="Public session identifier for GDPR-safe sharing")
     tutor = models.ForeignKey(Tutor,on_delete=models.SET_NULL, null=True, related_name='live_classes')
@@ -190,13 +189,14 @@ class SessionRecording(models.Model):
     
     storage_id = models.CharField( max_length=256, unique=True, help_text="Opaque storage identifier (GDPR pseudonymization)")
     storage_region = models.CharField( max_length=20,default='eu-west-1', help_text="AWS/GCP region for data residency compliance")
-    encryption_key_id = models.CharField( max_length=64,help_text="KMS key identifier for encrypted storage")
+    encryption_algorithm = models.CharField( max_length=64,default="AES-256")
+    encyrption_managed_by = models.CharField( max_length=64,default="CloudFlare R2")
     
     # Content Metadata
     duration_seconds = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     file_size_mb = models.DecimalField(max_digits=6,decimal_places=2,validators=[MinValueValidator(0.01)])
     
-    retention_days = models.PositiveSmallIntegerField(default=30,validators=[MaxValueValidator(365)],help_text="Days before automatic deletion (GDPR Right to Erasure)")
+    retention_days = models.PositiveSmallIntegerField(default=90,validators=[MaxValueValidator(365)],help_text="Days before automatic deletion (GDPR Right to Erasure)")
     
     # LiveKit References
     egress_id = models.CharField(max_length=64,blank=True,help_text="LiveKit's egress job ID")
@@ -210,7 +210,7 @@ class SessionRecording(models.Model):
         ('COMPLETED', 'Recording Completed'),
         ('FAILED', 'Recording Failed')
     ]
-    status = models.CharField(max_length=12,choices=RECORDING_STATUS,default='REQUESTED' )
+    status = models.CharField(max_length=12,choices=RECORDING_STATUS,default='STARTED')
     created_at = models.DateTimeField(default=timezone.now)
     history = HistoricalRecords()
 
