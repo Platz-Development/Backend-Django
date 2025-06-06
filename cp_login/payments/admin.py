@@ -56,15 +56,15 @@ class PaymentForLiveClassAdmin(ExportActionMixin, SimpleHistoryAdmin):
 @admin.register(PaymentForCourse)
 class PaymentForCourseAdmin(ExportActionMixin, SimpleHistoryAdmin):
     list_display = (
-        'id', 'tutor', 'learner','stripe_payment_id','base_price' , 'total_price',
+        'id', 'tutor', 'learner','stripe_payment_id','course_price' , 'total_course_price',
         'cp_total_profit','payment_status', 'created_at',
     )
     list_filter = ('payment_status', 'created_at', )
     search_fields = (
-        'tutor__user__email', 'learner__email', 'stripe_payment_id','courses'
+        'tutor__user__email', 'learner__email', 'stripe_payment_id','course'
     )
     autocomplete_fields = (
-        'tutor', 'learner', 'courses'
+        'tutor', 'learner', 'course'
     )
     readonly_fields = (
     'created_at',
@@ -73,7 +73,7 @@ class PaymentForCourseAdmin(ExportActionMixin, SimpleHistoryAdmin):
 
     fieldsets = (
         ('Payments For Courses', {
-            'fields': ['tutor', 'learner', 'courses']
+            'fields': ['tutor', 'learner', 'course']
         }),
         ('Currencies & Exchange', {
             'classes': ('collapse',),
@@ -85,7 +85,7 @@ class PaymentForCourseAdmin(ExportActionMixin, SimpleHistoryAdmin):
         }),
         ('Price Breakdown', {
             'fields': [
-                 'base_price', 'additional_charges', 'discount', 'total_price',
+                 'course_price', 'additional_charges', 'discount', 'total_course_price',
                 ]
         }),
         ('CampusPlatz Profits ', {

@@ -12,7 +12,7 @@ import os
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from celery import shared_task
-from .models import PaymentForLiveClass,PaymentForCourse
+from .models import PaymentForLiveClass,PaymentForCourse,CoursePaymentGroup
 from .handle_payment_types import handle_course_purchase_payment,handle_live_class_payment
 from live_class_streaming.models import LiveClassSession
 from tutor_courses.models import TutorCourses
@@ -373,8 +373,7 @@ class CoursePurchasePaymentIntent(APIView):
 
             tutor = course.tutor
 
-            PaymentForCourse.objects.create(
-            tutor=tutor,
+            CoursePaymentGroup.objects.create(
             learner=learner,
             stripe_payment_id=payment_intent.id,
             payment_status='pending' )

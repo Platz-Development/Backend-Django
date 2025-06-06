@@ -10,13 +10,13 @@ def calculate_cp_profit_from_learner(amount_received_at_stripe: float, base_pric
     return float(profit.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
-def calculate_commission_and_payout_for_tutor(commission_rate, base_price: float) -> dict:
+def calculate_commission_and_payout_for_tutor(commission_rate, course_price: float) -> dict:
     
-    base_price_decimal = Decimal(str(base_price))
+    course_price_decimal = Decimal(str(course_price))
     commission_rate = Decimal(str(commission_rate)) / Decimal("100")
 
-    commission = base_price_decimal * commission_rate
-    tutor_payout = base_price_decimal - commission
+    commission = course_price_decimal * commission_rate
+    tutor_payout = course_price_decimal - commission
 
     return {
         "commission_from_tutor": float(commission.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),

@@ -38,7 +38,6 @@ class PaymentForLiveClass(models.Model):
     stripe_fee = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     net_received_from_stripe = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)       
     amount_received_at_stripe = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)       
-    exchange_rate = models.DecimalField(max_digits=10, decimal_places=6,blank=True, null=True)  # Exchange rate used
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     stripe_payment_id = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -50,6 +49,36 @@ class PaymentForLiveClass(models.Model):
         return f"PLC -> {self.id}"
 
 
+
+class CoursePaymentGroup (models.Model):
+    
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('succeeded', 'Succeeded'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    learner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='course_payment_group')
+    courses = models.ManyToManyField(TutorCourses,related_name='courses')
+    stripe_payment_intent = models.CharField(max_length=100, blank=True, null=True)
+    base_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
+    additional_charges = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
+    discount = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    cp_profit_from_learner = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
+    amount_received_at_stripe = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)       
+    stripe_fee = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
+    net_received_from_stripe = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)       
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    failure_reason = models.TextField(blank=True, null=True)
+    history = HistoricalRecords()
+    
+    def __str__(self):
+        return f"CPG -> {self.id} "
+    
 
 class PaymentForCourse(models.Model):
 
@@ -63,14 +92,14 @@ class PaymentForCourse(models.Model):
 
     tutor = models.ForeignKey(Tutor, on_delete=models.SET_NULL, related_name='tutor_payments_courses',null=True)
     learner = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='learner_payments_courses',null=True)
-    courses = models.ManyToManyField(TutorCourses, related_name='courses')
+    course = models.ForeignKey(TutorCourses,  on_delete=models.SET_NULL,related_name='course',null=True)
     tutor_currency = models.CharField(max_length=3,blank=True, null=True)  
     learner_currency = models.CharField(max_length=3,blank=True, null=True) 
     converted_base_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
-    base_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
+    course_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     additional_charges = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     discount = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
-    total_price= models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
+    total_course_price= models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     converted_total_price= models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     cp_profit_from_learner = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     cp_commission_from_tutor = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
@@ -79,14 +108,13 @@ class PaymentForCourse(models.Model):
     stripe_fee = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)  
     net_received_from_stripe = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)       
     amount_received_at_stripe = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)        
-    exchange_rate = models.DecimalField(max_digits=10, decimal_places=6,blank=True, null=True)  
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     stripe_payment_id = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     failure_reason = models.TextField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
+    course_payment_group = models.ForeignKey(CoursePaymentGroup, on_delete=models.SET_NULL, related_name='payments', null=True)
     history = HistoricalRecords()
 
     def __str__(self):
         return f"PCP -> {self.id}"
-

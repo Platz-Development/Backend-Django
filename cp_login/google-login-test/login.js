@@ -25,14 +25,12 @@ async function handleCredentialResponse(response) {
     if (res.ok) {
       alert(data.message || "Login successful!");
 
-      console.log("Email:", data.email);
       console.log("Access Token:", data.access);
       console.log("Refresh Token:", data.refresh);
 
       // Store tokens safely (consider security implications)
       localStorage.setItem("access_token", data.access);
       localStorage.setItem("refresh_token", data.refresh);
-      localStorage.setItem("email", data.email);
 
       // Redirect to dashboard or another page if needed
       // window.location.href = "/dashboard.html";

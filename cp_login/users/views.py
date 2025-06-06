@@ -352,7 +352,8 @@ class GoogleSignupView(APIView):
 
             return Response({
                 'message': 'Account Created Successfully' if created else 'Logged In Successfully',
-                'email': user.email,
+                'uid': user.uid,
+                'id': user.id,
                 'access': str(refresh.access_token),
                 'refresh': str(refresh),
             }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
