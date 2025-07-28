@@ -1,0 +1,9 @@
+[2025-06-29 19:58:23,679] [INFO] [users.views.TutorSignup] New User Tutor Signup Request Received
+[2025-06-29 20:04:38,804] [INFO] [users.views.TutorSignup] New User Tutor Signup Request Received
+[2025-06-29 20:21:34,960] [INFO] [users.views.TutorSignup] New User Tutor Signup Request Received
+[2025-06-29 20:21:35,928] [ERROR] [users.views.TutorSignup] New User Tutor Signup Failed For vin@iu-study.org. Errors: {'user': {'country': [ErrorDetail(string='"India" is not a valid choice.', code='invalid_choice')]}, 'profile_photo': [ErrorDetail(string='No file was submitted.', code='required')]}
+[2025-06-29 20:27:57,659] [INFO] [users.views.TutorSignup] New User Tutor Signup Request Received
+[2025-06-29 20:27:58,428] [ERROR] [users.views.TutorSignup] New User Tutor Signup Failed For vin@iu-study.org. Errors: {'user': {'country': [ErrorDetail(string='"India" is not a valid choice.', code='invalid_choice')]}, 'profile_photo': [ErrorDetail(string='No file was submitted.', code='required')]}
+[2025-06-29 20:32:27,193] [INFO] [users.views.TutorSignup] New User Tutor Signup Request Received
+[2025-06-29 20:33:25,567] [INFO] [users.views.TutorSignup] New User Tutor Signup Request Received
+[2025-06-29 20:33:26,190] [ERROR] [users.views.TutorSignup] New User Tutor Signup Failed For vin@iu-study.org. Errors: {'user': {'country': [ErrorDetail(string='"India" is not a valid choice.', code='invalid_choice')]}}
